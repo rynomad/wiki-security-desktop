@@ -1,10 +1,11 @@
 {
-  "name": "wiki-security-friends",
-  "description": "A friendly security module (dependency free) for Federated Wiki node server",
+  "name": "wiki-security-desktop",
+  "description": "A fork of wiki-security-friends with added features for desktop",
   "version": "0.2.0",
-  "author": "Paul Rodwell <paul.rodwell@btinternet.com> (http://rodwell.me/)",
+  "author": "Ryan Bennett <ry.nomad@protonmail.com>",
   "contributors": [
-    "Ward Cunningham <ward@c2.com>"
+    "Ward Cunningham <ward@c2.com>",
+    "Paul Rodwell <paul.rodwell@btinternet.com> (http://rodwell.me/)"
   ],
   "license": "MIT",
   "dependencies": {

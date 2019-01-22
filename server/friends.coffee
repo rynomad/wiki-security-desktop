@@ -21,6 +21,8 @@ require 'seedrandom'
 # Export a function that generates security handler
 # when called with options object.
 module.exports = exports = (log, loga, argv) ->
+  console.log("WIKI SECURITY DESKTOP")
+
   security = {}
 
   #### Private utility methods. ####
@@ -50,6 +52,8 @@ module.exports = exports = (log, loga, argv) ->
         fs.readFile(idFile, (err, data) ->
           if err then return cb err
           owner = JSON.parse(data)
+          # HACK
+          console.log 'RECLAIM_CODE:' + owner.friend.secret + ' '
           cb())
       else
         owner = ''
