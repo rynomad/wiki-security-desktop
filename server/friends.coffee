@@ -16,6 +16,8 @@
 console.log 'friends starting'
 fs = require 'fs'
 require 'seedrandom'
+os = require 'os'
+jetpack = require 'fs-jetpack'
 
 
 # Export a function that generates security handler
@@ -34,13 +36,14 @@ module.exports = exports = (log, loga, argv) ->
   # save the location of the identity file
   idFile = argv.id
 
-  nickname = (seed) ->
-    rn = new Math.seedrandom(seed)
-    c = "bcdfghjklmnprstvwy"
-    v = "aeiou"
-    ch = (string) -> string.charAt Math.floor rn() * string.length
-    ch(c) + ch(v) + ch(c) + ch(v) + ch(c) + ch(v)
-
+  createOwner = (cb) -> 
+    secret = require('crypto').randomBytes(32).toString('hex')
+    nick = os.userInfo().username || os.hostname().split('.')[0]
+    id = {name: nick, friend: {secret: secret}}
+    setOwner id, (err) ->
+      if err
+        console.log 'Failed to claim wiki ', nick, 'error ', err
+      cb()
 
   #### Public stuff ####
 
@@ -53,11 +56,12 @@ module.exports = exports = (log, loga, argv) ->
           if err then return cb err
           owner = JSON.parse(data)
           # HACK
-          console.log 'RECLAIM_CODE:' + owner.friend.secret + ' '
+          console.log '[[[OWNER:' + owner.name + ':' + owner.friend.secret + ':]]]'
           cb())
       else
-        owner = ''
-        cb()
+        console.log('first run create owner')
+        createOwner (err) -> 
+          security.retrieveOwner(cb)
 
   # Return the owners name
   security.getOwner = getOwner = ->
@@ -71,11 +75,11 @@ module.exports = exports = (log, loga, argv) ->
     owner = id
     fs.exists idFile, (exists) ->
       if !exists
-        fs.writeFile(idFile, JSON.stringify(id, null, "  "), (err) ->
+        jetpack.writeAsync(idFile, id).then (err) ->
           if err then return cb err
           console.log "Claiming site for ", id:id
           owner = id
-          cb())
+          cb()
       else
         cb()
 
@@ -101,28 +105,6 @@ module.exports = exports = (log, loga, argv) ->
     else
       return false
 
-  security.login = (updateOwner) ->
-    (req, res) ->
-
-      if owner is '' # site is not claimed
-        # create a secret and write it to owner file and the cookie
-        secret = require('crypto').randomBytes(32).toString('hex')
-        req.session.friend = secret
-        nick = nickname secret
-        id = {name: nick, friend: {secret: secret}}
-        setOwner id, (err) ->
-          if err
-            console.log 'Failed to claim wiki ', req.hostname, 'error ', err
-            res.sendStatus(500)
-          updateOwner getOwner
-          res.json({
-            ownerName: nick
-            })
-          res.end
-      else
-        console.log 'friend returning login'
-        res.sendStatus(501)
-
   security.logout = () ->
     (req, res) ->
       req.session.reset()
@@ -145,7 +127,6 @@ module.exports = exports = (log, loga, argv) ->
           res.sendStatus(500))
 
   security.defineRoutes = (app, cors, updateOwner) ->
-    app.post '/login', cors, security.login(updateOwner)
     app.get '/logout', cors, security.logout()
     app.post '/auth/reclaim/', cors, security.reclaim()
 

@@ -118,7 +118,31 @@ setup = function(user) {
     if (!Modernizr.fetch) {
       require('whatwg-fetch');
     }
-    return update_footer(ownerName, isAuthenticated);
+
+    const reclaimCode = ipcRenderer.sendSync('id')
+    const data = new FormData();
+    data.append("json", JSON.stringify({
+      reclaimCode: reclaimCode
+    }));
+    const myInit = {
+      method: 'POST',
+      cache: 'no-cache',
+      mode: 'same-origin',
+      credentials: 'include',
+      body: reclaimCode
+    };
+    fetch('/auth/reclaim/', myInit).then(function(response) {
+      console.log('SETUP reclaim response', response);
+      if (response.ok) {
+        window.isAuthenticated = true;
+        return update_footer(ownerName, true);
+      } else {
+        return console.log('reclaim failed: ', response);
+      }
+    });
+
+    console.log("SETUP")
+    return update_footer(ownerName, false);
   });
 };
 
