@@ -18,6 +18,22 @@ fs = require 'fs'
 require 'seedrandom'
 os = require 'os'
 jetpack = require 'fs-jetpack'
+nacl = require 'tweetnacl'
+
+keys = () -> 
+  _box = nacl.box.keyPair()
+  _sign = nacl.sign.keyPair()
+  box = {
+    publicKey : Buffer.from(_box.publicKey).toString('hex'),
+    secretKey : Buffer.from(_box.secretKey).toString('hex')
+  }
+  sign = {
+    publicKey : Buffer.from(_sign.publicKey).toString('hex'),
+    secretKey : Buffer.from(_sign.secretKey).toString('hex')
+  }
+  res = {sign, box}
+  res
+
 
 
 # Export a function that generates security handler
@@ -26,6 +42,17 @@ module.exports = exports = (log, loga, argv) ->
   console.log("WIKI SECURITY DESKTOP")
 
   security = {}
+
+  patchCreds = (id, cb) ->
+    console.log "patch creds"
+    creds = keys()
+    console.log creds
+    id.box = creds.box
+    id.sign = creds.sign
+    jetpack.writeAsync(idFile, owner).then (err) ->
+      if err then return cb err
+      owner = id
+      cb()
 
   #### Private utility methods. ####
 
@@ -39,7 +66,8 @@ module.exports = exports = (log, loga, argv) ->
   createOwner = (cb) -> 
     secret = require('crypto').randomBytes(32).toString('hex')
     nick = os.userInfo().username || os.hostname().split('.')[0]
-    id = {name: nick, friend: {secret: secret}}
+    creds = keys()
+    id = {name: nick, friend: {secret: secret}, creds}
     setOwner id, (err) ->
       if err
         console.log 'Failed to claim wiki ', nick, 'error ', err
@@ -55,9 +83,13 @@ module.exports = exports = (log, loga, argv) ->
         fs.readFile(idFile, (err, data) ->
           if err then return cb err
           owner = JSON.parse(data)
-          # HACK
-          console.log '[[[OWNER:' + owner.name + ':' + owner.friend.secret + ':]]]'
-          cb())
+          console.log "REEEEEED", owner.creds
+          if !owner.creds?
+            patchCreds owner, cb
+          else
+            console.log '[[[OWNER:' + owner.name + ':' + owner.friend.secret + ':]]]'
+            cb()
+        )
       else
         console.log('first run create owner')
         createOwner (err) -> 

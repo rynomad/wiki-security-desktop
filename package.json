@@ -11,7 +11,8 @@
   "dependencies": {
     "coffeescript": "^2.3.2",
     "fs-jetpack": "^2.2.1",
-    "seedrandom": "^2.4.4"
+    "seedrandom": "^2.4.4",
+    "tweetnacl": "^1.0.1"
   },
   "devDependencies": {
     "coffeeify": "^3.0.1",
