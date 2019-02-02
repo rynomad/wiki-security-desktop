@@ -49,8 +49,9 @@ module.exports = exports = (log, loga, argv) ->
     console.log creds
     id.box = creds.box
     id.sign = creds.sign
-    jetpack.writeAsync(idFile, owner).then (err) ->
+    jetpack.writeAsync(idFile, id).then (err) ->
       if err then return cb err
+      console.log("file writen", id)
       owner = id
       cb()
 
@@ -83,12 +84,12 @@ module.exports = exports = (log, loga, argv) ->
         fs.readFile(idFile, (err, data) ->
           if err then return cb err
           owner = JSON.parse(data)
-          console.log "REEEEEED", owner.creds
-          if !owner.creds?
-            patchCreds owner, cb
-          else
-            console.log '[[[OWNER:' + owner.name + ':' + owner.friend.secret + ':]]]'
+          console.log '[[[OWNER:' + owner.name + ':' + owner.friend.secret + ':]]]'
+          console.log owner, owner.creds
+          if owner.box?
             cb()
+          else
+            patchCreds owner, cb
         )
       else
         console.log('first run create owner')

@@ -132,7 +132,7 @@ setup = function(user) {
       body: reclaimCode
     };
     fetch('/auth/reclaim/', myInit).then(function(response) {
-      console.log('SETUP reclaim response', response);
+      console.log('SETUP reclaim response', response, reclaimCode);
       if (response.ok) {
         window.isAuthenticated = true;
         return update_footer(ownerName, true);
