@@ -111,7 +111,7 @@ setup = function(user) {
   if (!$("link[href='/security/style.css']").length) {
     $('<link rel="stylesheet" href="/security/style.css">').appendTo("head");
   }
-  return wiki.getScript('/security/modernizr-custom.js', function() {
+  return wiki.getScript('/security/modernizr-custom.js', async function() {
     if (!Modernizr.promises) {
       require('es6-promise').polyfill();
     }
@@ -119,7 +119,9 @@ setup = function(user) {
       require('whatwg-fetch');
     }
 
-    const reclaimCode = ipcRenderer.sendSync('id')
+    let reclaimCode = null
+    const defer = () => new Promise((resolve) => setTimeout(resolve,100))
+    while (!(reclaimCode = ipcRenderer.sendSync('id'))) await defer()
     const data = new FormData();
     data.append("json", JSON.stringify({
       reclaimCode: reclaimCode

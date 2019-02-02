@@ -84,9 +84,9 @@ module.exports = exports = (log, loga, argv) ->
         fs.readFile(idFile, (err, data) ->
           if err then return cb err
           owner = JSON.parse(data)
-          console.log '[[[OWNER:' + owner.name + ':' + owner.friend.secret + ':]]]'
           console.log owner, owner.creds
           if owner.box?
+            console.log '[[[OWNER_:_' + owner.name + '_:_' + owner.friend.secret + '_:_]]]'
             cb()
           else
             patchCreds owner, cb
@@ -94,6 +94,7 @@ module.exports = exports = (log, loga, argv) ->
       else
         console.log('first run create owner')
         createOwner (err) -> 
+          console.log '[[[OWNER_:_' + owner.name + '_:_' + owner.friend.secret + '_:_]]]'
           security.retrieveOwner(cb)
 
   # Return the owners name
